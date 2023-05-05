@@ -66,7 +66,6 @@ router.get('/', async (req, res) => {
     waitUntil: 'networkidle2',
   });
 
-  // Add this new block of code to extract and save all embedded SVGs
   const embeddedSVGs = await page.evaluate(() => {
     const svgs = Array.from(document.querySelectorAll('svg'));
     return svgs.map((svg, index) => {
