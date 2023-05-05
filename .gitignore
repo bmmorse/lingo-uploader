@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# images
+/images
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
