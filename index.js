@@ -1,8 +1,11 @@
 const express = require('express');
 const app = express();
-const imagesRouter = require('./routes/images'); // Add this line to require the images router
+const downloadRouter = require('./routes/download');
+const uploadRouter = require('./routes/upload');
+require('dotenv').config();
 
-app.use('/', imagesRouter); // Use the images router for the `/` route
+app.use('/download', downloadRouter);
+app.use('/upload', uploadRouter);
 
 app.listen(3000, () => {
   console.log('Server listening on port 3000');

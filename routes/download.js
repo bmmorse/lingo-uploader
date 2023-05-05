@@ -13,14 +13,18 @@ function extractDomainAndExtension(hostname) {
   return domainParts.join('.');
 }
 
-router.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+async function saveSVGContent(filename, content, targetDir) {
+  fs.writeFileSync(path.join(targetDir, filename), content);
+}
 
-router.get('/images', async (req, res) => {
+router.get('/', async (req, res) => {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
   page.setDefaultNavigationTimeout(0);
+
+  // Set viewport to full width
+  const screenWidth = await page.evaluate(() => window.screen.width);
+  await page.setViewport({ width: screenWidth, height: 1080 });
 
   const testURLs = [
     'https://www.lingoapp.com',
@@ -60,8 +64,24 @@ router.get('/images', async (req, res) => {
 
   await page.goto(targetURL, {
     waitUntil: 'networkidle2',
-    timeout: 12000000,
   });
+
+  // Add this new block of code to extract and save all embedded SVGs
+  const embeddedSVGs = await page.evaluate(() => {
+    const svgs = Array.from(document.querySelectorAll('svg'));
+    return svgs.map((svg, index) => {
+      const serializer = new XMLSerializer();
+      const serializedSVG = serializer.serializeToString(svg);
+      return {
+        filename: `embeddedSVG-${index + 1}.svg`,
+        content: serializedSVG,
+      };
+    });
+  });
+
+  for (const { filename, content } of embeddedSVGs) {
+    await saveSVGContent(filename, content, targetDir);
+  }
 
   async function scrollToBottom() {
     const delay = 1000;
