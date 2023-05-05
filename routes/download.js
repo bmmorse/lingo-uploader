@@ -2,8 +2,20 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
-
 const router = express.Router();
+
+// Configure Download URL ------------
+
+const testURLs = {
+  lingo: 'https://www.lingoapp.com',
+  nyt: 'https://www.nytimes.com',
+  canva: 'https://www.canva.com',
+  nounproject: 'https://www.thenounproject.com',
+  amazon: 'https://www.amazon.com',
+};
+const TEST_URL = testURLs.amazon;
+
+// ----------------------------------
 
 function extractDomainAndExtension(hostname) {
   const domainParts = hostname.split('.');
@@ -26,13 +38,7 @@ router.get('/', async (req, res) => {
   const screenWidth = await page.evaluate(() => window.screen.width);
   await page.setViewport({ width: screenWidth, height: 1080 });
 
-  const testURLs = [
-    'https://www.lingoapp.com',
-    'https://www.nytimes.com',
-    'https://www.canva.com',
-  ];
-
-  const targetURL = testURLs[1];
+  const targetURL = TEST_URL;
 
   const urlObj = new URL(targetURL);
   const domainAndExtension = extractDomainAndExtension(urlObj.hostname);
