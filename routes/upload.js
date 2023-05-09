@@ -8,13 +8,14 @@ const dotenv = require('dotenv').config();
 // Configure Section Upload ------------
 
 const sections = {
-  nyt: process.env.NYT_SECTION_ID,
-  lingo: process.env.LINGO_SECTION_ID,
-  canva: process.env.CANVA_SECTION_ID,
-  nounproject: process.env.NOUNPROJECT_SECTION_ID,
-  amazon: process.env.AMAZON_SECTION_ID,
+  nyt: '52F91614-A39D-4BB8-BA57-57534785A3AF',
+  lingo: '3796319B-30DE-460F-8B5F-1C3AD074520A',
+  canva: '18CEDDC3-DE6A-465B-8C52-FCD13BA0BD7A',
+  nounproject: 'D57F9F4E-BB83-4CC9-A484-23BF5CD7D9E1',
+  amazon: 'B50CC1BB-3301-4EB8-B5F9-A6B1273CFB7F',
+  samsclub: 'A98E5AFF-0FA9-4FAF-A0DA-B8C48BB29CDA',
 };
-const SECTION_ID = sections.amazon;
+const SECTION_ID = sections.nyt;
 
 // ----------------------------------
 

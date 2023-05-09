@@ -5,6 +5,7 @@
 
 # images
 /images
+/pdf
 
 # local env files
 .env*.local

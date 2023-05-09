@@ -12,8 +12,10 @@ const testURLs = {
   canva: 'https://www.canva.com',
   nounproject: 'https://www.thenounproject.com',
   amazon: 'https://www.amazon.com',
+  samsclub: 'https://brand.samsclub.com/',
+  samsclub2: 'https://samsclub.com/',
 };
-const TEST_URL = testURLs.amazon;
+const TEST_URL = testURLs.nyt;
 
 // ----------------------------------
 
