@@ -10,6 +10,11 @@ let fetch;
   fetch = await import('node-fetch').then((module) => module.default);
 })();
 
+// filepath to the PDF ---------------------------------------------------------
+const filePath =
+  '/Users/brendanmorse/Desktop/lingo-uploader-express/pdf/switcher.pdf';
+// -----------------------------------------------------------------------------
+
 async function getURI() {
   const getURI = await fetch('https://pdf-services.adobe.io/assets', {
     method: 'POST',
@@ -28,9 +33,6 @@ async function getURI() {
 }
 
 async function uploadPDF(uploadUri) {
-  const filePath =
-    '/Users/brendanmorse/Desktop/lingo-uploader-express/pdf/images.pdf';
-
   // Read the file into a buffer
   const fileBuffer = fs.readFileSync(filePath);
   try {
