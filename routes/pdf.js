@@ -5,6 +5,7 @@ require('dotenv').config();
 const fs = require('fs');
 const https = require('https');
 let fetch;
+
 (async () => {
   fetch = await import('node-fetch').then((module) => module.default);
 })();
@@ -21,36 +22,36 @@ async function getURI() {
       mediaType: 'application/pdf',
     }),
   });
-  console.log(getURI.status);
+  console.log(`\nSuccessfully generated URI: ${getURI.status}\n`);
   const { uploadUri, assetID } = await getURI.json();
   return { uploadUri, assetID };
 }
 
 async function uploadPDF(uploadUri) {
   const filePath =
-    '/Users/brendanmorse/Desktop/lingo-uploader-express/pdf/iowa.pdf';
+    '/Users/brendanmorse/Desktop/lingo-uploader-express/pdf/images.pdf';
 
   // Read the file into a buffer
   const fileBuffer = fs.readFileSync(filePath);
   try {
-    let p = await fetch(uploadUri, {
+    let response = await fetch(uploadUri, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/pdf',
       },
       body: fileBuffer,
     });
-    console.log(p.status);
-    let response = await p.text();
+    console.log(`Successfully uploaded the pdf ${response.status}`);
+    let text = await response.text();
 
-    return response;
+    return text;
   } catch (err) {
     console.log(err.name);
   }
 }
 
 async function processPDF(assetID) {
-  const result = await fetch(
+  const response = await fetch(
     'https://pdf-services-ue1.adobe.io/operation/extractpdf',
     {
       method: 'POST',
@@ -69,13 +70,15 @@ async function processPDF(assetID) {
       }),
     }
   );
-  console.log(result.status);
-  const headers = [...result.headers];
-  return headers[2][1];
+  console.log(response.status);
+  const location = response.headers.get('location');
+  console.log(`\nPDF will be processed at\n${location}\n`);
+
+  return location;
 }
 
-async function extractPDF(location) {
-  const result = await fetch(location, {
+async function downloadAssets(location) {
+  const response = await fetch(location, {
     method: 'GET',
     headers: {
       'X-API-Key': process.env.ADOBE_API_KEY,
@@ -83,41 +86,59 @@ async function extractPDF(location) {
       'Content-Type': 'application/json',
     },
   });
-  const json = await result.json();
-  console.log(json.resource.downloadUri);
-  const file = fs.createWriteStream(
-    '/Users/brendanmorse/Desktop/lingo-uploader-express/images/file.zip'
-  );
-  const request = https.get(json.resource.downloadUri, function (response) {
-    response.pipe(file);
 
-    // after download completed close filestream
-    file.on('finish', () => {
-      file.close();
-      console.log('Download Completed');
-    });
-  });
-  console.log(json);
+  const json = await response.json();
+
+  console.log(`the download status is ${json.status}`);
+
+  switch (json.status) {
+    case 'done': {
+      // console.log(`\ndownloadUri\n${json.resource.downloadUri}\n`);
+      const file = fs.createWriteStream(
+        '/Users/brendanmorse/Desktop/lingo-uploader-express/images/file.zip'
+      );
+      https.get(json.resource.downloadUri, function (response) {
+        response.pipe(file);
+
+        // after download completed close filestream
+        file.on('finish', () => {
+          file.close();
+          console.log('\nDownload Completed\n');
+        });
+      });
+      console.log('\nfiles are downloaded\n');
+      break;
+    }
+    case 'in progress': {
+      setTimeout(() => {
+        console.log('PDF is being processed...');
+        downloadAssets(location);
+      }, 5000);
+      break;
+    }
+    case 'failed': {
+      console.log('\nDownloading files has failed\n');
+      break;
+    }
+  }
 }
 
 router.get('/', async (req, res) => {
   try {
     // Get upload pre-signed URI
-    // const { uploadUri, assetID } = await getURI();
+    const { uploadUri, assetID } = await getURI();
 
     // Upload the file
-    // await uploadPDF(uploadUri);
+    await uploadPDF(uploadUri);
 
     // Start the PDF process
-    // const location = await processPDF(assetID);
-    // console.log(`\n${location}\n`);
+    const location = await processPDF(assetID);
 
-    // https://pdf-services-ue1.adobe.io/operation/extractpdf/Q2Xz3anBHjKvmtrtSTj1jXgIMTHdrecr/status
-    await extractPDF(
-      'https://pdf-services-ue1.adobe.io/operation/extractpdf/Q2Xz3anBHjKvmtrtSTj1jXgIMTHdrecr/status'
-    );
+    // const location =
+    //   'https://pdf-services-ue1.adobe.io/operation/extractpdf/rwBkjwH1KWN5hNOPA8qaN2cmoQpPq4gF/status';
+    await downloadAssets(location);
 
-    res.send('working');
+    res.send('success!');
   } catch (error) {
     console.log(error);
   }
